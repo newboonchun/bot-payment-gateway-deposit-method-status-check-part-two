@@ -417,7 +417,7 @@ async def check_toast(page,deposit_method,deposit_channel,bank_name):
     try:
         for _ in range(20):
             toast = page.locator('div.toast-message.text-sm')
-            await toast.wait_for(state="attached", timeout=30000)
+            await toast.wait_for(state="attached", timeout=10000)
             text = (await toast.inner_text()).strip()
             if await toast.count() > 0:
                 toast_exist = True
