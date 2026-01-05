@@ -34,12 +34,12 @@ def init_logger(round_start_time):
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     log_dir = os.path.join(base_dir, "Debug_Log")
     os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, "A8M2_Debug.log")
+    log_path = os.path.join(log_dir, "GM_Debug.log")
     if os.path.exists(log_path):
         try: os.remove(log_path)
         except: pass
 
-    logger = logging.getLogger('A8M2Bot')
+    logger = logging.getLogger('GMBot')
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
 
@@ -55,7 +55,7 @@ def init_logger(round_start_time):
     logger.addHandler(console_handler)
 
     logger.info("=" * 60)
-    logger.info("A8M2 PAYMENT GATEWAY TEST STARTING...")
+    logger.info("GM PAYMENT GATEWAY TEST STARTING...")
     logger.info(f"STARTING TIME: {round_start_time.strftime('%d-%m-%Y %H:%M:%S')} GMT+7")
     logger.info("=" * 60)
     return logger
@@ -137,11 +137,11 @@ async def reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_
         pass  
 
 async def perform_login(page):
-    WEBSITE_URL = "https://www.aw8game.online/en-my"
+    WEBSITE_URL = "https://www.mgojudi.com/en-my"
     for _ in range(3):
         try:
             log.info(f"LOGIN PROCESS - OPENING WEBSITE: {WEBSITE_URL}")
-            await page.goto("https://www.aw8game.online/en-my", timeout=30000, wait_until="domcontentloaded")
+            await page.goto("https://www.mgojudi.com/en-my", timeout=30000, wait_until="domcontentloaded")
             await wait_for_network_stable(page, timeout=30000)
             log.info("LOGIN PROCESS - PAGE LOADED SUCCESSFULLY")
             break
@@ -178,7 +178,7 @@ async def perform_login(page):
     except Exception as e:
         log.info("LOGIN PROCESS - FIRST ADVERTISEMENT DIDN'T APPEARED:%s"%e)
         
-    # Login flow a8m2
+    # Login flow gm
     # <button data-v-4fff4a3f="" type="button" class="topbar_btn_1" aria-label="Login">Login</button> -> has more than 1, cannot locate directly
     
     login_button = page.locator('button.topbar_btn_1')
@@ -192,13 +192,13 @@ async def perform_login(page):
             log.info("LOGIN PROCESS - LOGIN BUTTON ERROR:%s"%e)
     await asyncio.sleep(1)
     #class DOM: <button type="button" aria-label="account" class="reg-tab">
-    try:
-        account_button = page.locator('button.reg-tab[aria-label="account"]')
-        await account_button.click()
-        log.info("LOGIN PROCESS -  Account BUTTON ARE CLICKED")
-    except:
-        raise Exception("LOGIN PROCESS -  Account BUTTON ARE FAILED TO CLICKED")
-    await asyncio.sleep(1)
+    #try:
+    #    account_button = page.locator('button.reg-tab[aria-label="account"]')
+    #    await account_button.click()
+    #    log.info("LOGIN PROCESS -  Account BUTTON ARE CLICKED")
+    #except:
+    #    raise Exception("LOGIN PROCESS -  Account BUTTON ARE FAILED TO CLICKED")
+    #await asyncio.sleep(1)
     try:
         await page.get_by_role("textbox", name="Username").click()
         log.info("LOGIN PROCESS - USERNAME TEXTBOX ARE CLICKED")
@@ -206,7 +206,7 @@ async def perform_login(page):
         raise Exception("LOGIN PROCESS - USERNAME TEXTBOX ARE FAILED TO CLICK")
     await asyncio.sleep(1)
     try:
-        await page.get_by_role("textbox", name="Username").fill("bottestingss")
+        await page.get_by_role("textbox", name="Username").fill("bottesting")
         log.info("LOGIN PROCESS - USERNAME DONE KEYED")
     except:
         raise Exception("LOGIN PROCESS - USERNAME FAILED TO KEY IN")
@@ -223,9 +223,9 @@ async def perform_login(page):
     except:
         raise Exception("LOGIN PROCESS - PASSWORD FAILED TO KEY IN")
     await asyncio.sleep(1)
-    #class DOM: <button type="submit" class="btn primary w-full new-reg-buttons">Login</button>
+    #class DOM: <button type="submit" class="new-reg-buttons btn !font-bold !flex gap-3 justify-center items-center !py-3.5 rounded-md w-full text-sm uppercase">Login</button>
     try:
-        login_button = page.locator('button.btn.primary.new-reg-buttons:has-text("Login")')
+        login_button = page.locator('button.new-reg-buttons:has-text("Login")')
         await login_button.click()
         log.info("LOGIN PROCESS - LOGIN BUTTON ARE CLICKED")
     except:
@@ -237,11 +237,8 @@ async def perform_login(page):
         log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
     except:
         log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
-    #class DOM: <div data-v-4fff4a3f="" class="deposit_topbar">
-    #                <button data-v-4fff4a3f="" type="button" class="topbar_btn_2 mx-2 md:mx-[10px] flex items-center justify-center deposit_display_big" aria-label="Deposit" id="deposit_btn_12">Deposit</button> -->this is
-    #                <button data-v-4fff4a3f="" type="button" class="mr-3 deposit_display_small rounded-md topbar_deposit_icon_btn" aria-label="Deposit" id="deposit_btn_13"> --> this is not
     try:
-        deposit_topbar_container = page.locator('div.deposit_topbar')
+        deposit_topbar_container = page.locator('div.wallet-container-desktop')
         deposit_topbar_button = deposit_topbar_container.locator('button.topbar_btn_2:has-text("Deposit")')
         await deposit_topbar_button.click()
         log.info("LOGIN PROCESS - DEPOSIT BUTTON ARE CLICKED")
@@ -350,20 +347,20 @@ async def url_jump_check(page,old_url,deposit_method,deposit_channel,bank_name,b
                 await asyncio.sleep(10)
                 await page.wait_for_load_state("networkidle", timeout=70000) #added to ensure the payment page is loaded before screenshot is taken
                 log.info("NEW PAGE [%s] LOADED SUCCESSFULLY"%(new_url))
-                await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                 break 
             except TimeoutError:
                 log.info("TIMEOUT: PAGE DID NOT REACH NETWORKIDLE WITHIN 70s")
                 qr_code_count = await qr_code_check(page)
                 if qr_code_count != 0:
                     log.info("NEW PAGE [%s] STILL LOADING, BUT PAY FRAME IS LOADED"%(new_url))
-                    await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                    await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                     break
                 else:
                     retry_count += 1
                     if retry_count == max_retries:
                         log.info("❌ Failed: Page did not load after 3 retries.")
-                        await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                        await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                         url_jump = True
                         payment_page_failed_load = True
                     else:
@@ -374,7 +371,7 @@ async def url_jump_check(page,old_url,deposit_method,deposit_channel,bank_name,b
                             log.info("FAILED GO BACK TO OLD PAGE [%s] AND RETRY..."%(old_url))
 
     if new_payment_page == False:   
-        await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+        await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
         url_jump = False
         payment_page_failed_load = False
 
@@ -426,19 +423,19 @@ async def check_toast(page,deposit_method,deposit_channel,bank_name):
             text = (await toast.inner_text()).strip()
             if await toast.count() > 0:
                 toast_exist = True
-                await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                 log.info("DEPOSIT METHOD:%s, DEPOSIT CHANNEL:%s GOT PROBLEM. DETAILS:[%s]"%(deposit_channel,deposit_method,text))
                 break
             await asyncio.sleep(0.1)
     except:
             text = None
             toast_exist = False
-            await page.screenshot(path="A8M2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+            await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
             log.info("No Toast message, no proceed to payment page, no qr code, please check what reason manually.")
     return toast_exist, text
 
 async def perform_payment_gateway_test(page):
-    method_exclude_list = ["Phone Card","Telco","Online Payment","Bank Transfer"]
+    method_exclude_list = ["Phone Card","Telco","Bank Transfer"]
     exclude_list = ["Bank Transfer", "Government Savings Bank", "Government Saving Bank", "ธ.", "ธนาคารออมสิน", "ธนาคารกสิกรไทย", "ธนาคารไทยพาณิชย์","ธนาคาร","กสิกรไทย"]
     telegram_message = {}
     failed_reason = {}
@@ -640,8 +637,8 @@ async def telegram_send_operation(telegram_message, failed_reason, program_compl
             fail_line = f"│ **Failed Reason:** `{escape_md(failed_reason_text)}`\n" if failed_reason_text else ""
             caption = f"""[W\\_Hao](tg://user?id=8416452734), [W\\_MC](tg://user?id=7629175195)
 *Subject: Bot Testing Deposit Gateway*  
-URL: [aw8game\\.online](https://www\\.aw8game\\.online/en\\-my)
-TEAM : A8M2
+URL: [mgojudi\\.com](https://www\\.mgojudi\\.com/en\\-my)
+TEAM : GM
 ┌─ **Deposit Testing Result** ──────────┐
 │ {status_emoji} **{status}** 
 │  
@@ -657,8 +654,8 @@ TEAM : A8M2
 
             law_caption = f"""[W\\_Karman](tg://user?id=5615912046)
 *Subject: Bot Testing Deposit Gateway*  
-URL: [aw8game\\.online](https://www\\.aw8game\\.online/en\\-my)
-TEAM : A8M2
+URL: [mgojudi\\.com](https://www\\.mgojudi\\.com/en\\-my)
+TEAM : GM
 ┌─ **Deposit Testing Result** ──────────┐
 │ {status_emoji} **{status}** 
 │  
@@ -671,7 +668,7 @@ TEAM : A8M2
 
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """
-            files = glob.glob("*A8M2_%s_%s*.png"%(deposit_method,deposit_channel))
+            files = glob.glob("*GM_%s_%s*.png"%(deposit_method,deposit_channel))
             log.info("File [%s]"%(files))
             file_path = files[0]
             # Only send screenshot which status is failed
@@ -721,7 +718,7 @@ TEAM : A8M2
                 pass
     else:   
         fail_msg = (
-                "⚠️ *A8M2 RETRY 3 TIMES FAILED*\n"
+                "⚠️ *GM RETRY 3 TIMES FAILED*\n"
                 "OVERALL FLOW CAN'T COMPLETE DUE TO NETWORK ISSUE OR INTERFACE CHANGES IN LOGIN PAGE OR CLOUDFLARE BLOCK\n"
                 "KINDLY CONTACT PAYMENT TEAM TO CHECK IF ISSUE PERSISTS CONTINUOUSLY IN TWO HOURS"
             )
@@ -779,8 +776,8 @@ async def telegram_send_summary(telegram_message,date_time):
             
             summary_body = succeed_block + (failed_block if failed_block else "") + (unknown_block if unknown_block else "")
             caption = f"""*Deposit Payment Gateway Testing Result Summary *  
-URL: [aw8game\\.online](https://www\\.aw8game\\.online/en\\-my)
-TEAM : A8M2
+URL: [mgojudi\\.com](https://www\\.mgojudi\\.com/en\\-my)
+TEAM : GM
 TIME: {escape_md(date_time)}
 
 {summary_body}"""
@@ -808,7 +805,7 @@ TIME: {escape_md(date_time)}
     #        log.error(f"SUMMARY FAILED TO SENT: {e}")
 
 async def clear_screenshot():
-    picture_to_sent = glob.glob("*A8M2*.png")
+    picture_to_sent = glob.glob("*GM*.png")
     for f in picture_to_sent:
         os.remove(f) 
 
@@ -859,10 +856,10 @@ async def data_process_excel(telegram_message):
         try:
             if os.path.exists(file):
                 sheets = pd.ExcelFile(file).sheet_names
-                if "A8M2" in sheets:
+                if "GM" in sheets:
                     for attempt in range(3):
                         try:
-                            df = pd.read_excel(file,sheet_name="A8M2")
+                            df = pd.read_excel(file,sheet_name="GM")
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL READING ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
@@ -919,12 +916,12 @@ async def data_process_excel(telegram_message):
                                 mode="a",
                                 if_sheet_exists="replace"
                             ) as writer:
-                                df.to_excel(writer, sheet_name='A8M2', index=False)
+                                df.to_excel(writer, sheet_name='GM', index=False)
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
                 else:
-                    log.info("Sheets A8M2 not found in file :%s"%file)
+                    log.info("Sheets GM not found in file :%s"%file)
                     df = pd.DataFrame([excel_data])
                     for attempt in range(3):
                         try:
@@ -934,7 +931,7 @@ async def data_process_excel(telegram_message):
                                 mode="a",
                                 if_sheet_exists="replace"
                             ) as writer:
-                                df.to_excel(writer, sheet_name='A8M2', index=False)
+                                df.to_excel(writer, sheet_name='GM', index=False)
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
@@ -945,7 +942,7 @@ async def data_process_excel(telegram_message):
                 for attempt in range(3):
                     try:
                         with pd.ExcelWriter(file, engine="openpyxl") as writer:
-                            df.to_excel(writer, sheet_name='A8M2', index=False)
+                            df.to_excel(writer, sheet_name='GM', index=False)
                     except Exception as e:
                         log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                         await asyncio.sleep(5)
