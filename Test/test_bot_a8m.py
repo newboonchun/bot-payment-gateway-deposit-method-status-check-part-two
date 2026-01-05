@@ -266,8 +266,8 @@ async def perform_payment_gateway_test(page,context):
             btn = deposit_options_button.nth(i)
             deposit_option = await btn.inner_text()
             log.info("PERFORM PAYMENT GATEWAY TEST - DEPOSIT OPTION [%s]"%deposit_option)
-            if deposit_option != 'Quick Pay': #FOR DEBUG
-               continue
+            #if deposit_option != 'Quick Pay': #FOR DEBUG
+            #   continue
             # manual bank check
             if any(manual_bank in deposit_option for manual_bank in exclude_list):
                 log.info(f"DEPOSIT OPTION [{deposit_option}] IS NOT PAYMENT GATEWAY, SKIPPING CHECK...")
@@ -343,7 +343,7 @@ async def perform_payment_gateway_test(page,context):
                             #   <div class="standard-bank-container container-show-with-bank-image-and-text">
                             #        <span class="standard-radio-content-label standard-desc ">OnePay3 Prompt Pay QR Pay</span>
 
-                            #  *****assume that deposit channel always got one only****
+                            #  *****current only test the first deposit channel !!! ****
                             try:
                                 deposit_channels_container = page.locator('div.standard-form-field.depositOptions')
                                 await deposit_channels_container.wait_for(state="attached", timeout=5000)
@@ -359,6 +359,9 @@ async def perform_payment_gateway_test(page,context):
                             else:
                                 deposit_channel_counter = deposit_channels_total_count
                             for k in range (deposit_channel_counter):
+                                if k >= 1:
+                                    log.info("DEPOSIT CHANNEL [%s] >=1, SKIP NEXT CHECK"%k)
+                                    continue
                                 if deposit_channels_total_count != 0:
                                     channel_btn = deposit_channels_button.nth(k)
                                     deposit_channel = await channel_btn.locator('span.standard-radio-content-label').inner_text()
