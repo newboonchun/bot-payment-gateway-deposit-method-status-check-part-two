@@ -438,7 +438,7 @@ async def check_toast(page,deposit_method,deposit_channel,bank_name):
     return toast_exist, text
 
 async def perform_payment_gateway_test(page):
-    method_exclude_list = ["Phone Card","Telco","Online Payment","Bank Transfer"]
+    method_exclude_list = ["Phone Card","Telco","Bank Transfer"]
     exclude_list = ["Bank Transfer", "Government Savings Bank", "Government Saving Bank", "ธ.", "ธนาคารออมสิน", "ธนาคารกสิกรไทย", "ธนาคารไทยพาณิชย์","ธนาคาร","กสิกรไทย"]
     telegram_message = {}
     failed_reason = {}
