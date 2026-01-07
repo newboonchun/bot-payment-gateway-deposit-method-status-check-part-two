@@ -355,128 +355,8 @@ async def qr_code_check(page):
         log.info("NO QR DETECTED")
     return qr_code_count
 
-async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,money_button_text,telegram_message):
-    pop_up_page = 0
-    new_page = page
-    popup_future = asyncio.create_task(page.context.wait_for_event("page", timeout=60000))     
-    navigation_future = asyncio.create_task(
-                                            page.wait_for_url(lambda url: url != old_url, timeout=60000)
-                                        )
-    try:
-        deposit_submit_button = page.locator('button.btn_deposits.uppercase:has-text("Deposit")')
-        await deposit_submit_button.wait_for(state="visible", timeout=60000)
-        await deposit_submit_button.click()
-        log.info("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE CLICKED")
-    except:
-        raise Exception("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE FAILED TO CLICK")
-    
-    try:
-        done, pending = await asyncio.wait(
-                                [popup_future, navigation_future],
-                                return_when=asyncio.FIRST_COMPLETED,
-                                timeout=60,
-                            )
-        for task in pending:
-            task.cancel()
-
-        if popup_future in done:
-            new_page = popup_future.result()
-            #new_page = await popup_info.value
-            new_url = new_page.url
-            log.info("POPUP PAGE OPENED: %s", new_page.url)
-            new_payment_page = True
-            pop_up_page = 1
-            page = new_page
-
-        elif navigation_future in done:
-            new_url = page.url
-            if new_url != old_url:
-                log.info("LOADING INTO NEW PAGE [%s]"%(new_url))
-                new_payment_page = True
-    except Exception as e:
-    #   If no navigation happened, no pop up page appeared
-        new_payment_page = False
-        log.info("NO NAVIGATION HAPPENED & NO POP UP PAGE, STAYS ON SAME PAGE [%s]:[%s]"%(page.url,e))    
-
-    
-    if new_payment_page == True:
-        max_retries = 3
-        retry_count = 0
-        while retry_count < max_retries:
-            try:
-                await asyncio.sleep(10)
-                await page.wait_for_load_state("networkidle", timeout=70000) #added to ensure the payment page is loaded before screenshot is taken
-                log.info("NEW PAGE [%s] LOADED SUCCESSFULLY"%(new_url))
-                await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-                break 
-            except TimeoutError:
-                log.info("TIMEOUT: PAGE DID NOT REACH NETWORKIDLE WITHIN 70s")
-                qr_code_count = await qr_code_check(page)
-                if qr_code_count != 0:
-                    log.info("NEW PAGE [%s] STILL LOADING, BUT PAY FRAME IS LOADED"%(new_url))
-                    await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-                    break
-                else:
-                    retry_count += 1
-                    if retry_count == max_retries:
-                        log.info("❌ Failed: Page did not load after 3 retries.")
-                        await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-                        url_jump = True
-                        payment_page_failed_load = True
-                    else:
-                        log.info("RETRYING...: ATTEMPT [%s] of [%s]"%(retry_count,max_retries))
-                        try:
-                            await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,money_button_text,recheck=1)
-                        except Exception as e:
-                            log.info("FAILED GO BACK TO OLD PAGE [%s] AND RETRY...[%s]"%(old_url,e))
-
-    if new_payment_page == False:   
-        await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-        log.info("SCREENSHOTED NEW PAYMENT PAGE =FALSE [%s]"%(new_payment_page))
-        url_jump = False
-        payment_page_failed_load = False
-
-    if new_payment_page and retry_count<3:
-        url_jump = True
-        payment_page_failed_load = False
-    
-    return url_jump, payment_page_failed_load, pop_up_page, new_page
-
 async def check_toast(page,deposit_method,deposit_channel,bank_name):
     toast_exist = False
-    try:
-        await page.get_by_role("button", name="%s"%deposit_method, exact=True).click()
-        log.info("CHECK TOAST - DEPOSIT METHOD [%s] BUTTON ARE CLICKED"%deposit_method)
-    except:
-        raise Exception("CHECK TOAST - DEPOSIT METHOD [%s] BUTTON ARE FAILED CLICKED"%deposit_method)
-    try:
-        await page.get_by_role("button", name="%s"%deposit_channel, exact=True).click()
-        log.info("CHECK TOAST - DEPOSIT CHANNEL [%s] BUTTON ARE CLICKED"%deposit_channel)
-    except:
-        raise Exception("CHECK TOAST - DEPOSIT CHANNEL [%s] BUTTON ARE FAILED CLICKED"%deposit_channel)
-    money_input_range = page.locator('div.deposit_channel_title_text.flex.justify-between')
-    await money_input_range.wait_for(state="attached", timeout=3000)
-    money_input_range_text = (await money_input_range.inner_text())
-    matches = re.findall(r"RM\s*([\d,]+)", money_input_range_text)
-    if matches:
-        min_amount = matches[0]            
-        min_amount = min_amount.replace(",", "")  # remove comma if any
-        print(min_amount)
-    else:
-        log.warning("NO MINIMUM DEPOSIT AMOUNT INPUT")
-    try:
-        await page.get_by_placeholder("0").click()
-        await page.get_by_placeholder("0").fill("%s"%min_amount)
-        log.info("CHECK TOAST - MIN AMOUNT [%s] ARE KEYED IN"%min_amount)
-    except:
-        raise Exception("CHECK TOAST - MIN AMOUNT [%s] ARE NOT KEYED IN"%min_amount)
-    try:
-        deposit_submit_button = page.locator('button.btn_deposits.uppercase:has-text("Deposit")')
-        await deposit_submit_button.wait_for(state="visible", timeout=60000)
-        await deposit_submit_button.click()
-        log.info("CHECK TOAST - เติมเงิน/DEPOSIT TOP UP BUTTON ARE CLICKED")
-    except Exception as e:
-        log.info("CHECK TOAST - เติมเงิน/DEPOSIT TOP UP BUTTON ARE FAILED TO CLICK:%s"%e)
     try:
         for _ in range(20):
             toast = page.locator('div.toast-message.text-sm')
@@ -491,9 +371,102 @@ async def check_toast(page,deposit_method,deposit_channel,bank_name):
     except:
             text = None
             toast_exist = False
-            await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-            log.info("No Toast message, no proceed to payment page, no qr code, please check what reason manually.")
+            #await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+            log.info("No Toast message")
     return toast_exist, text
+
+async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,money_button_text,telegram_message):
+    pop_up_page = 0
+    new_page = page
+    url_jump = False
+    payment_page_failed_load = True
+    popup_future = asyncio.create_task(page.context.wait_for_event("page", timeout=60000))     
+    navigation_future = asyncio.create_task(
+                                            page.wait_for_url(lambda url: url != old_url, timeout=60000)
+                                        )
+    try:
+        deposit_submit_button = page.locator('button.btn_deposits.uppercase:has-text("Deposit")')
+        await deposit_submit_button.wait_for(state="visible", timeout=60000)
+        await deposit_submit_button.click()
+        log.info("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE CLICKED")
+    except:
+        raise Exception("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE FAILED TO CLICK")
+    
+    toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
+    
+    if not toast_exist:
+        try:
+            done, pending = await asyncio.wait(
+                                    [popup_future, navigation_future],
+                                    return_when=asyncio.FIRST_COMPLETED,
+                                    timeout=60,
+                                )
+            for task in pending:
+                task.cancel()
+
+            if popup_future in done:
+                new_page = popup_future.result()
+                #new_page = await popup_info.value
+                new_url = new_page.url
+                log.info("POPUP PAGE OPENED: %s", new_page.url)
+                new_payment_page = True
+                pop_up_page = 1
+                page = new_page
+
+            elif navigation_future in done:
+                new_url = page.url
+                if new_url != old_url:
+                    log.info("LOADING INTO NEW PAGE [%s]"%(new_url))
+                    new_payment_page = True
+        except Exception as e:
+        #   If no navigation happened, no pop up page appeared
+            new_payment_page = False
+            log.info("NO NAVIGATION HAPPENED & NO POP UP PAGE, STAYS ON SAME PAGE [%s]:[%s]"%(page.url,e))    
+
+
+        if new_payment_page == True:
+            max_retries = 3
+            retry_count = 0
+            while retry_count < max_retries:
+                try:
+                    await asyncio.sleep(10)
+                    await page.wait_for_load_state("networkidle", timeout=70000) #added to ensure the payment page is loaded before screenshot is taken
+                    log.info("NEW PAGE [%s] LOADED SUCCESSFULLY"%(new_url))
+                    await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                    break 
+                except TimeoutError:
+                    log.info("TIMEOUT: PAGE DID NOT REACH NETWORKIDLE WITHIN 70s")
+                    qr_code_count = await qr_code_check(page)
+                    if qr_code_count != 0:
+                        log.info("NEW PAGE [%s] STILL LOADING, BUT PAY FRAME IS LOADED"%(new_url))
+                        await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                        break
+                    else:
+                        retry_count += 1
+                        if retry_count == max_retries:
+                            log.info("❌ Failed: Page did not load after 3 retries.")
+                            await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                            url_jump = True
+                            payment_page_failed_load = True
+                        else:
+                            log.info("RETRYING...: ATTEMPT [%s] of [%s]"%(retry_count,max_retries))
+                            try:
+                                await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,money_button_text,recheck=1)
+                            except Exception as e:
+                                log.info("FAILED GO BACK TO OLD PAGE [%s] AND RETRY...[%s]"%(old_url,e))
+
+        if new_payment_page == False:   
+            await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+            log.info("SCREENSHOTED NEW PAYMENT PAGE =FALSE [%s]"%(new_payment_page))
+            url_jump = False
+            payment_page_failed_load = False
+
+        if new_payment_page and retry_count<3:
+            url_jump = True
+            payment_page_failed_load = False
+    
+    return url_jump, payment_page_failed_load, pop_up_page, new_page, toast_exist, toast_failed_text
+
 
 async def perform_payment_gateway_test(page,context):
     method_exclude_list = ["Phone Card","Telco","Bank Transfer"]
@@ -602,7 +575,12 @@ async def perform_payment_gateway_test(page,context):
                         log.info("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE KEYED IN"%min_amount)
                     except:
                         raise Exception("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE NOT KEYED IN"%min_amount)
-                    url_jump, payment_page_failed_load, pop_up_page, new_page = await url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
+                    url_jump, payment_page_failed_load, pop_up_page, new_page, toast_exist, toast_failed_text = await url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
+                    if toast_exist:
+                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
+                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [toast_failed_text]
+                        log.info("TOAST DETECTED")
+                        continue
                     # EXTRA MANUAL BANK CHECK ##
                     if pop_up_page == 0:
                         try:
@@ -641,14 +619,6 @@ async def perform_payment_gateway_test(page,context):
                         failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"payment page failed load"]
                         log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE FAILED LOAD")
                         await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
-                        continue
-                    else:
-                        pass
-                    toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
-                    if toast_exist:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [toast_failed_text]
-                        log.info("TOAST DETECTED")
                         continue
                     else:
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"no reason found, check manually_{date_time("Asia/Bangkok")}"]
@@ -1017,7 +987,7 @@ async def data_process_excel(telegram_message):
 
 @pytest.mark.asyncio
 async def test_main():
-    MAX_RETRY = 1
+    MAX_RETRY = 3
     global log
     th_tz = pytz.timezone('Asia/Bangkok')
     round_start = datetime.now(th_tz)
