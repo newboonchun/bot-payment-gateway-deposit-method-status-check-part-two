@@ -607,7 +607,7 @@ async def telegram_send_operation(telegram_message, failed_reason, program_compl
     log.info("FAILED REASON: [%s]"%(failed_reason))
     TOKEN = os.getenv("TOKEN")
     chat_id = os.getenv("CHAT_ID")
-    law_chat_id = os.getenv("LAW_CHAT_ID")
+    michael_chat_id = os.getenv("MICHAEL_CHAT_ID")
     bot = Bot(token=TOKEN)
     if program_complete == True:
         for key, value_list in telegram_message.items():
@@ -654,7 +654,7 @@ TEAM : GM
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
 
-            law_caption = f"""[W\\_Karman](tg://user?id=5615912046)
+            michael_caption = f"""[W\\_Karman](tg://user?id=5615912046)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [mgojudi\\.com](https://www\\.mgojudi\\.com/en\\-my)
 TEAM : GM
@@ -700,9 +700,9 @@ TEAM : GM
                 #    try:
                 #        with open(file_path, 'rb') as f:
                 #              await bot.send_photo(
-                #                    chat_id=law_chat_id,
+                #                    chat_id=michael_chat_id,
                 #                    photo=f,
-                #                    caption=law_caption,
+                #                    caption=michael_caption,
                 #                    parse_mode='MarkdownV2',
                 #                    read_timeout=30,
                 #                    write_timeout=30,
@@ -739,7 +739,7 @@ async def telegram_send_summary(telegram_message,date_time):
     log.info("TELEGRAM MESSAGE: [%s]"%(telegram_message))
     TOKEN = os.getenv("TOKEN")
     chat_id = os.getenv("CHAT_ID")
-    law_chat_id = os.getenv("LAW_CHAT_ID")
+    michael_chat_id = os.getenv("MICHAEL_CHAT_ID")
     bot = Bot(token=TOKEN)
     log.info("TELEGRAM_MESSAGE:%s"%telegram_message)
     succeed_records = []
@@ -797,7 +797,7 @@ TIME: {escape_md(date_time)}
     
     #for attempt in range(3):
     #    try:
-    #        await bot.send_message(chat_id=law_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
+    #        await bot.send_message(chat_id=michael_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
     #        log.info("SUMMARY SENT")
     #        break
     #    except TimedOut:
