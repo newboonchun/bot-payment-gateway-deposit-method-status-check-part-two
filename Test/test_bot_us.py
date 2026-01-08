@@ -31,12 +31,12 @@ def init_logger(round_start_time):
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     log_dir = os.path.join(base_dir, "Debug_Log")
     os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, "A8S_Debug.log")
+    log_path = os.path.join(log_dir, "US_Debug.log")
     if os.path.exists(log_path):
         try: os.remove(log_path)
         except: pass
 
-    logger = logging.getLogger('A8SBot')
+    logger = logging.getLogger('USBot')
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
 
@@ -52,7 +52,7 @@ def init_logger(round_start_time):
     logger.addHandler(console_handler)
 
     logger.info("=" * 60)
-    logger.info("A8S PAYMENT GATEWAY TEST STARTING...")
+    logger.info("US PAYMENT GATEWAY TEST STARTING...")
     logger.info(f"STARTING TIME: {round_start_time.strftime('%d-%m-%Y %H:%M:%S')} GMT+7")
     logger.info("=" * 60)
     return logger
@@ -121,16 +121,45 @@ async def reenter_deposit_page(page,new_page,context,old_url,deposit_submit_butt
         
         ## important, must click back the same deposit option, method and channel button every time re-enter deposit page
         ## if not will make confuse of the current test sequence !!!
-        await btn.click()
-        await method_btn.click()
-        await channel_btn.click()
+        await asyncio.sleep(5) # this delay is important !!! CANNOT REMOVED, IF REMOVED WILL CAUSE ERROR
+        try:
+            advertisement_close_button = page.locator(".image-announcement-close")
+            await advertisement_close_button.click()
+            log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
+        except:
+            log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+        await asyncio.sleep(1)
+        try:
+            await btn.click()
+            log.info("REENTER DEPOSIT PAGE - OPTION BUTTON ARE CLICKED")
+        except Exception as e:
+            log.info("REENTER DEPOSIT PAGE - OPTION BUTTON FAILED TO CLICKED: [%s]"%e)
+        await asyncio.sleep(1)
+        try:
+            advertisement_close_button = page.locator(".image-announcement-close")
+            await advertisement_close_button.click()
+            log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
+        except:
+            log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+        await asyncio.sleep(1)
+        try:
+            await method_btn.click()
+            log.info("REENTER DEPOSIT PAGE - METHOD BUTTON ARE CLICKED")
+        except Exception as e:
+            log.info("REENTER DEPOSIT PAGE - METHOD BUTTON FAILED TO CLICKED: [%s]"%e)
+        await asyncio.sleep(1)
+        try:
+            await channel_btn.click()
+            log.info("REENTER DEPOSIT PAGE - CHANNEL BUTTON ARE CLICKED")
+        except Exception as e:
+            log.info("REENTER DEPOSIT PAGE - CHANNEL BUTTON FAILED TO CLICKED: [%s]"%e)
 
 async def perform_login(page):
-    WEBSITE_URL = "https://www.aw8thebest1.online/en-sg/"
+    WEBSITE_URL = "https://www.uea8sg2.com/en-sg/"
     for _ in range(3):
         try:
             log.info(f"LOGIN PROCESS - OPENING WEBSITE: {WEBSITE_URL}")
-            await page.goto("https://www.aw8thebest1.online/en-sg/", timeout=30000, wait_until="domcontentloaded")
+            await page.goto("https://www.uea8sg2.com/en-sg/", timeout=30000, wait_until="domcontentloaded")
             await wait_for_network_stable(page, timeout=30000)
             log.info("LOGIN PROCESS - PAGE LOADED SUCCESSFULLY")
             break
@@ -140,59 +169,57 @@ async def perform_login(page):
     else:
         raise Exception("LOGIN PROCESS - RETRY 3 TIMES....PAGE LOADED FAILED")
         
-    # Login flow a8s
+    # Login flow um
+    # Login flow uea8
     await asyncio.sleep(5)
+    #<div class="image-announcement-close ">
+    #     <img src="/public/html/default_whitelabel/shared-image/icons/close-btn.png" alt="announcement-close-icon"></div>
     try:
-        advertisement_close = page.locator('div.image-announcement-close')
-        await advertisement_close.click()
-        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSED")
+        advertisement_close_button = page.locator(".image-announcement-close")
+        await advertisement_close_button.click()
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
     except:
-        log.info("LOGIN PROCESS - NO ADVERTISEMENT")
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
     #<form class="form-control">
-    #      <button class="_button_1om7q_1 undefined _loginButton_oo0rk_15 btnLogin atoms-button">Login</button>
-    #      <button class="_button_1om7q_1 undefined btnJoin atoms-button">Join Now</button>
+    #      <div class="_usernamePasswordLoginContainer_oo0rk_1 username PasswordLoginContainer">
+    #            <div class="_loginInput_oo0rk_5 standard-form-field">
+    #                 <input class="undefined standard-input" type="text" placeholder="Username" data-name="username" value="bottesting"></div>
+    #            <div class="_passwordInput_oo0rk_10 standard-form-field">
+    #                 <input class="undefined standard-input" type="password" placeholder="Password" data-name="password" value="Bot1232">
+    #            <button class="_button_1om7q_1 undefined _loginButton_oo0rk_15 btnLogin atoms-button">Login</button>
     #</form>
     try:
         topbar_container = page.locator('form.form-control')
-        login_button = topbar_container.locator('button:has-text("Login")')
+        username_password_login_container = topbar_container.locator('div._usernamePasswordLoginContainer_oo0rk_1.username')
+        await username_password_login_container.locator('input.undefined.standard-input[data-name="username"]').click()
+        await username_password_login_container.locator('input.undefined.standard-input[data-name="username"]').fill("bottestings")
+        await username_password_login_container.locator('input.undefined.standard-input[data-name="password"]').click()
+        await username_password_login_container.locator('input.undefined.standard-input[data-name="password"]').fill("Bot1232")
+        login_button = username_password_login_container.locator('button:has-text("Login")')
         await login_button.click()
-        log.info("LOGIN PROCESS - LOGIN BUTTON ARE CLICKED")
-    except:
-        raise Exception("LOGIN PROCESS - LOGIN BUTTON ARE FAILED TO CLICKED")
-    #<div class="login-form-container">
-    #     <div class="_dropdownContainer_x3wte_24 dropdownContainer">
-    #          <div class="">
-    #              <input class="undefined dropdown-field standard-input" type="text" placeholder="Username / Phone no." data-name="username" value="bottesting"></div>
-    #     <div class="_passDropdownContainer_x3wte_29 dropdownContainer">
-    #          <div class="">
-    #              <input class="undefined dropdown-field standard-input" type="password" placeholder="Password" data-name="password" value="Bot1232">
-    #     <div class="standard-button-container _loginButtonContainer_x3wte_50 login-btn-container reg-btn-container-prevnext">
-    #          <button id="" class="_loginButton_x3wte_50 btnLogin custom-btn-login" data-button-category="submit" type="submit">Login</button></div>
-
+        log.info("LOGIN PROCESS - LOGIN PROCESS SUCCESSFUL")
+    except Exception as e:
+        raise Exception("LOGIN PROCESS - LOGIN PROCESS FAILED:%s"%e)
     try:
-        login_form_container = page.locator('div.login-form-container')
-        await login_form_container.locator('input.undefined.dropdown-field.standard-input[data-name="username"]').click()
-        await login_form_container.locator('input.undefined.dropdown-field.standard-input[data-name="username"]').fill("bottestings")
-        log.info("LOGIN PROCESS - USERNAME DONE KEYED")
+        advertisement_close_button = page.locator(".image-announcement-close")
+        await advertisement_close_button.click()
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
     except:
-        raise Exception("LOGIN PROCESS - USERNAME FAILED TO KEY IN")
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+    #try:
+    #    #deposit_button_container = page.locator('div.bottom-container')
+    #    deposit_button = page.locator('a.deposit-btn')
+    #    await deposit_button.click()
+    #    log.info("LOGIN PROCESS - DEPOSIT TOPBAR BUTTON ARE NOT CLICKED")
+    #except:
+    #    raise Exception("LOGIN PROCESS - DEPOSIT BUTTON FAILED TO CLICKED")
     try:
-        await login_form_container.locator('input.undefined.dropdown-field.standard-input[data-name="password"]').click()
-        await login_form_container.locator('input.undefined.dropdown-field.standard-input[data-name="password"]').fill("Bot1232")
-        #<button type="submit" aria-label="Login" class="btn primary !block mx-auto uppercase !py-[8px] rounded-md w-full">Login</button>
-        login_button = login_form_container.locator('button:has-text("Login")')
-        await login_button.click()
-        await asyncio.sleep(10)
-        log.info("LOGIN PROCESS - PASSWORD DONE KEYED AND CLICKED LOGIN BUTTON")
+        advertisement_close_button = page.locator(".image-announcement-close")
+        await advertisement_close_button.click()
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
     except:
-        raise Exception("LOGIN PROCESS - PASSWORD FAILED TO FILL IN AND LOGIN TO DEPOSIT PAGE FAILED")
-    try:
-        #deposit_button_container = page.locator('div.bottom-container')
-        deposit_button = page.locator('a.deposit-btn')
-        await deposit_button.click()
-    except:
-        raise Exception("LOGIN PROCESS - DEPOSIT BUTTON FAILED TO CLICKED")
-
+        log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+    
 async def check_toast(page,new_page,deposit_option,deposit_method_text,deposit_channel,bank_name):
     toast_exist = False
     try:
@@ -204,7 +231,7 @@ async def check_toast(page,new_page,deposit_option,deposit_method_text,deposit_c
             if await toast.count() > 0:
                 toast_exist = True
                 try:
-                    await new_page.screenshot(path="A8STHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method_text,deposit_channel,bank_name),timeout=30000)
+                    await new_page.screenshot(path="US_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method_text,deposit_channel,bank_name),timeout=60000)
                     log.info("CHECK TOAST DETECTED: SCREENSHOT SUCCESS")
                 except Exception as e:
                     log.info("CHECK TOAST DETECTED: SCREENSHOT FAILED:%s"%e)
@@ -218,7 +245,7 @@ async def check_toast(page,new_page,deposit_option,deposit_method_text,deposit_c
     return toast_exist, text
 
 async def perform_payment_gateway_test(page,context):
-    exclude_list = ["Express Deposit","Crypto","Bank Transfer","Ewallet","Mobile Card","PayNow"] #TBC
+    exclude_list = ["Express Deposit","Bank Transfer","Ewallet","Mobile Card","PayNow"] #TBC
     telegram_message = {}
     failed_reason = {}
 
@@ -259,6 +286,13 @@ async def perform_payment_gateway_test(page,context):
             try:
                 await btn.click()
                 log.info("PERFORM PAYMENT GATEWAY TEST - DEPOSIT OPTION [%s] BUTTON ARE CLICKED"%deposit_option)
+
+                try:
+                    advertisement_close_button = page.locator(".image-announcement-close")
+                    await advertisement_close_button.click()
+                    log.info("PERFORM PAYMENT GATEWAY TEST - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
+                except:
+                    log.info("PERFORM PAYMENT GATEWAY TEST - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
 
                 # DOM for deposit method
                 #<div class="standard-form-field depositMethod component-2   ">
@@ -360,11 +394,14 @@ async def perform_payment_gateway_test(page,context):
                                     deposit_amount_input_box = deposit_amount_input_container.locator('input[id="depositamount"]')
                                     deposit_amount_input_range = await deposit_amount_input_box.get_attribute("placeholder")
                                     log.info("DEPOSIT AMOUNT INPUT RANGE [%s] "%(deposit_amount_input_range))
-                                    min_amount, max_amount = re.findall(r"[\d,]+\.\d+", deposit_amount_input_range)
+                                    matches = re.findall(r"(\d[\d,]*\.\d+|\d+)", deposit_amount_input_range)
+                                    min_amount = matches[0]  # The first match is the minimum value
                                     await deposit_amount_input_box.fill("%s"%int(float(min_amount)))
                                     log.info("DEPOSIT AMOUNT INPUT [%s] KEYED IN"%int(float(min_amount)))
                                 except Exception as e:
                                     log.info("DEPOSIT AMOUNT INPUT ERROR:%s"%(e))
+                                    log.info("PROCEED TO NEXT CHANNEL TEST:%s"%(e))
+                                    break ## go to next method if deposit amount input cannot locate
                                 
                    ################### to decide either there is pop up page, or stays at same page ####################
                                 deposit_submit_button_no_action = 0
@@ -418,7 +455,7 @@ async def perform_payment_gateway_test(page,context):
                                             retry_count += 1
                                             if retry_count == max_retries:
                                                 log.info("❌ Failed: DEPOSIT CLICK DID NOT TRIGGER ANY ACTION AFTER 1 RETRY.")
-                                                await new_page.screenshot(path="A8STHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=30000)
+                                                await new_page.screenshot(path="USTHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=60000)
                                                 telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
                                                 failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"payment page failed load"]
                                                 deposit_submit_button_no_action = 1
@@ -436,7 +473,7 @@ async def perform_payment_gateway_test(page,context):
                                         retry_count += 1
                                         if retry_count == max_retries:
                                             log.info("❌ Failed: DEPOSIT CLICK DID NOT TRIGGER ANY ACTION AFTER 1 RETRY.")
-                                            await new_page.screenshot(path="A8STHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=30000)
+                                            await new_page.screenshot(path="USTHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=60000)
                                             telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
                                             failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"payment page failed load"]
                                             deposit_submit_button_no_action = 1
@@ -468,7 +505,7 @@ async def perform_payment_gateway_test(page,context):
                                     continue
                                 else:
                                     log.info("NO TOAST DETECTED")
-                                    await new_page.screenshot(path="A8STHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=30000)
+                                    await new_page.screenshot(path="US_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=60000)
                                     telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
                                     failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"-"]
                                     if pop_up_page:
@@ -491,7 +528,7 @@ async def telegram_send_operation(telegram_message,failed_reason,program_complet
     log.info("FAILED REASON: [%s]"%(failed_reason))
     TOKEN = os.getenv("TOKEN")
     chat_id = os.getenv("CHAT_ID")
-    michael_chat_id = os.getenv("MICHAEL_CHAT_ID")
+    jr_raymond_chat_id = os.getenv("JR_RAYMOND_CHAT_ID")
     bot = Bot(token=TOKEN)
     if program_complete == True:
         for key, value_list in telegram_message.items():
@@ -525,8 +562,8 @@ async def telegram_send_operation(telegram_message,failed_reason,program_complet
             fail_line = f"│ **Failed Reason:** `{escape_md(failed_reason_text)}`\n" if failed_reason_text else ""
             caption = f"""[W\\_Hao](tg://user?id=8416452734), [W\\_MC](tg://user?id=7629175195)
 *Subject: Bot Testing Deposit Gateway*  
-URL: [aw8thebest1\\.online](https://www\\.aw8thebest1\\.online/en\\-sg)
-TEAM : A8S
+URL: [uea8sg2\\.com](https://www\\.uea8sg2\\.com/en\\-sg)
+TEAM : US
 ┌─ **Deposit Testing Result** ──────────┐
 │ {status_emoji} **{status}** 
 │ 
@@ -541,10 +578,10 @@ TEAM : A8S
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
 
-            michael_caption = f"""[W\\_Karman](tg://user?id=5615912046)
+            jr_raymond_caption = f"""[W\\_Karman](tg://user?id=5615912046)
 *Subject: Bot Testing Deposit Gateway*  
-URL: [aw8thebest1\\.online](https://www\\.aw8thebest1\\.online/en\\-sg)
-TEAM : A8S
+URL: [uea8sg2\\.com](https://www\\.uea8sg2\\.com/en\\-sg)
+TEAM : US
 ┌─ **Deposit Testing Result** ──────────┐
 │ {status_emoji} **{status}** 
 │  
@@ -558,7 +595,7 @@ TEAM : A8S
 
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
-            files = glob.glob("*A8STHEBEST_%s_%s_%s*.png"%(deposit_option,deposit_method,deposit_channel))
+            files = glob.glob("*US_%s_%s_%s*.png"%(deposit_option,deposit_method,deposit_channel))
             log.info("File [%s]"%(files))
             file_path = files[0]
             # Only send screenshot which status is failed
@@ -587,9 +624,9 @@ TEAM : A8S
                 #    try:
                 #        with open(file_path, 'rb') as f:
                 #              await bot.send_photo(
-                #                    chat_id=michael_chat_id,
+                #                    chat_id=jr_raymond_chat_id,
                 #                    photo=f,
-                #                    caption=michael_caption,
+                #                    caption=jr_raymond_caption,
                 #                    parse_mode='MarkdownV2',
                 #                    read_timeout=30,
                 #                    write_timeout=30,
@@ -607,7 +644,7 @@ TEAM : A8S
                 pass
     else:   
         fail_msg = (
-                "⚠️ *A8S RETRY 3 TIMES FAILED*\n"
+                "⚠️ *US RETRY 3 TIMES FAILED*\n"
                 "OVERALL FLOW CAN'T COMPLETE DUE TO NETWORK ISSUE OR INTERFACE CHANGES IN LOGIN PAGE OR CLOUDFLARE BLOCK\n"
                 "KINDLY ASK ENGINEER TO CHECK IF ISSUE PERSISTS CONTINUOUSLY IN TWO HOURS"
             )
@@ -626,7 +663,7 @@ async def telegram_send_summary(telegram_message,date_time):
     log.info("TELEGRAM MESSAGE: [%s]"%(telegram_message))
     TOKEN = os.getenv("TOKEN")
     chat_id = os.getenv("CHAT_ID")
-    michael_chat_id = os.getenv("MICHAEL_CHAT_ID")
+    jr_raymond_chat_id = os.getenv("JR_RAYMOND_CHAT_ID")
     bot = Bot(token=TOKEN)
     log.info("TELEGRAM_MESSAGE:%s"%telegram_message)
     succeed_records = []
@@ -667,8 +704,8 @@ async def telegram_send_summary(telegram_message,date_time):
             
             summary_body = succeed_block + (failed_block if failed_block else "") + (unknown_block if unknown_block else "")
             caption = f"""*Deposit Payment Gateway Testing Result Summary *  
-URL: [aw8thebest1\\.online](https://www\\.aw8thebest1\\.online/en\\-sg)
-TEAM : A8S
+URL: [uea8sg2\\.com](https://www\\.uea8sg2\\.com/en\\-sg)
+TEAM : US
 TIME: {escape_md(date_time)}
 
 {summary_body}"""
@@ -686,7 +723,7 @@ TIME: {escape_md(date_time)}
     
     #for attempt in range(3):
     #    try:
-    #        await bot.send_message(chat_id=michael_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
+    #        await bot.send_message(chat_id=jr_raymond_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
     #        log.info("SUMMARY SENT")
     #        break
     #    except TimedOut:
@@ -696,7 +733,7 @@ TIME: {escape_md(date_time)}
     #        log.error(f"SUMMARY FAILED TO SENT: {e}")
 
 async def clear_screenshot():
-    picture_to_sent = glob.glob("*A8STHEBEST*.png")
+    picture_to_sent = glob.glob("*US*.png")
     for f in picture_to_sent:
         os.remove(f) 
 
@@ -744,10 +781,10 @@ async def data_process_excel(telegram_message):
         try:
             if os.path.exists(file):
                 sheets = pd.ExcelFile(file).sheet_names
-                if "AW8S" in sheets:
+                if "US" in sheets:
                     for attempt in range(3):
                         try:
-                            df = pd.read_excel(file,sheet_name="AW8S")
+                            df = pd.read_excel(file,sheet_name="US")
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL READING ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
@@ -804,12 +841,12 @@ async def data_process_excel(telegram_message):
                                 mode="a",
                                 if_sheet_exists="replace"
                             ) as writer:
-                                df.to_excel(writer, sheet_name='AW8S', index=False)
+                                df.to_excel(writer, sheet_name='US', index=False)
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
                 else:
-                    log.info("Sheets AW8S not found in file :%s"%file)
+                    log.info("Sheets US not found in file :%s"%file)
                     df = pd.DataFrame([excel_data])
                     for attempt in range(3):
                         try:
@@ -819,7 +856,7 @@ async def data_process_excel(telegram_message):
                                 mode="a",
                                 if_sheet_exists="replace"
                             ) as writer:
-                                df.to_excel(writer, sheet_name='AW8S', index=False)
+                                df.to_excel(writer, sheet_name='US', index=False)
                         except Exception as e:
                             log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                             await asyncio.sleep(5)
@@ -830,7 +867,7 @@ async def data_process_excel(telegram_message):
                 for attempt in range(3):
                     try:
                         with pd.ExcelWriter(file, engine="openpyxl") as writer:
-                            df.to_excel(writer, sheet_name='AW8S', index=False)
+                            df.to_excel(writer, sheet_name='US', index=False)
                     except Exception as e:
                         log.warning(f"DATA PROCESS EXCEL ERROR: {e}，RETRY {attempt + 1}/3...")
                         await asyncio.sleep(5)
