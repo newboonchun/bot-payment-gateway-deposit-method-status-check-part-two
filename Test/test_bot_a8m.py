@@ -187,6 +187,7 @@ async def url_jump_check(page,new_page,context,old_url,deposit_submit_button,dep
             try:
                 await asyncio.sleep(5)
                 #await new_page.wait_for_load_state("networkidle", timeout=60000) #added to ensure the payment page is loaded before screenshot is taken
+                await wait_for_network_stable(page, timeout=70000)
                 log.info("URL JUMP CHECK - NEW PAGE [%s] LOADED SUCCESSFULLY"%(new_url))
                 await new_page.screenshot(path="A8MTHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=30000)
                 break 

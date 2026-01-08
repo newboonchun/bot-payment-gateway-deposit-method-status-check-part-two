@@ -139,11 +139,12 @@ async def reenter_deposit_page(page,new_page,context,old_url,deposit_method,depo
             log.info("REENTER DEPOSIT PAGE - DEPOSIT CHANNEL [%s] BUTTON ARE CLICKED"%deposit_channel)
         except:
             raise Exception("REENTER DEPOSIT PAGE - DEPOSIT CHANNEL [%s] BUTTON ARE FAILED CLICKED"%deposit_channel)
-        try:
-            await bank_btn.click()
-            log.info("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE CLICKED"%bank_name)
-        except:
-            raise Exception("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE FAILED CLICKED"%bank_name)
+        if bank_btn !=None:
+            try:
+                await bank_btn.click()
+                log.info("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE CLICKED"%bank_name)
+            except:
+                raise Exception("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE FAILED CLICKED"%bank_name)
         try:
             await page.get_by_placeholder("0").click()
             await page.get_by_placeholder("0").fill("%s"%min_amount)
@@ -365,7 +366,8 @@ async def check_toast(page,deposit_method,deposit_channel,bank_name):
             if await toast.count() > 0:
                 toast_exist = True
                 await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
-                log.info("DEPOSIT METHOD:%s, DEPOSIT CHANNEL:%s GOT PROBLEM. DETAILS:[%s]"%(deposit_channel,deposit_method,text))
+                log.info("DEPOSIT METHOD:%s, DEPOSIT CHANNEL:%s BANK_NAME:%s GOT PROBLEM. DETAILS:[%s]"%(deposit_method,deposit_channel,bank_name,text))
+                await asyncio.sleep(5)
                 break
             await asyncio.sleep(0.1)
     except:
@@ -421,8 +423,11 @@ async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,ban
         except Exception as e:
         #   If no navigation happened, no pop up page appeared
             new_payment_page = False
-            log.info("NO NAVIGATION HAPPENED & NO POP UP PAGE, STAYS ON SAME PAGE [%s]:[%s]"%(page.url,e))    
-
+            log.info("NO NAVIGATION HAPPENED & NO POP UP PAGE, STAYS ON SAME PAGE [%s]:[%s]"%(page.url,e))
+            # if the pop up page and navigation check is not working, stop the script, let it retry from beginning
+            if page.url != old_url:
+                log.info("NO NAVIGATION HAPPENED & NO POP UP PAGE,BUT OLD URL [%s] ARE DIFFERENT WITH CURRENT PAGE URL [%s]"%(old_url,page.url))
+                raise Exception ("NO NAVIGATION HAPPENED & NO POP UP PAGE,BUT OLD URL [%s] ARE DIFFERENT WITH CURRENT PAGE URL [%s]"%(old_url,page.url))
 
         if new_payment_page == True:
             max_retries = 3
@@ -430,7 +435,8 @@ async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,ban
             while retry_count < max_retries:
                 try:
                     await asyncio.sleep(10)
-                    await page.wait_for_load_state("networkidle", timeout=70000) #added to ensure the payment page is loaded before screenshot is taken
+                    await wait_for_network_stable(page, timeout=70000)
+                    #await page.wait_for_load_state("networkidle", timeout=70000) #added to ensure the payment page is loaded before screenshot is taken
                     log.info("NEW PAGE [%s] LOADED SUCCESSFULLY"%(new_url))
                     await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                     break 
@@ -555,6 +561,7 @@ async def perform_payment_gateway_test(page,context):
                             bank_name = await bank_btn.inner_text()
                             log.info(f"BANK NAME - [{bank_name}]")
                     else:
+                        bank_btn = None
                         bank_name = ''
                         pass
                     # input the minimum deposit amount
