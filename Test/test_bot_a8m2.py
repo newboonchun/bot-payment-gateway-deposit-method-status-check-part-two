@@ -115,11 +115,12 @@ async def reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_
         log.info("REENTER DEPOSIT PAGE - DEPOSIT CHANNEL [%s] BUTTON ARE CLICKED"%deposit_channel)
     except:
         raise Exception("REENTER DEPOSIT PAGE - DEPOSIT CHANNEL [%s] BUTTON ARE FAILED CLICKED"%deposit_channel)
-    try:
-        await bank_btn.click()
-        log.info("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE CLICKED"%bank_name)
-    except:
-        raise Exception("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE FAILED CLICKED"%bank_name)
+    if bank_btn !=None:
+        try:
+            await bank_btn.click()
+            log.info("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE CLICKED"%bank_name)
+        except:
+            raise Exception("REENTER DEPOSIT PAGE - BANK [%s] BUTTON ARE FAILED CLICKED"%bank_name)
     try:
         await page.get_by_placeholder("0").click()
         await page.get_by_placeholder("0").fill("%s"%min_amount)
@@ -524,6 +525,7 @@ async def perform_payment_gateway_test(page):
                             bank_name = await bank_btn.inner_text()
                             log.info(f"BANK NAME - [{bank_name}]")
                     else:
+                        bank_btn = None
                         bank_name = ''
                         pass
                     # input the minimum deposit amount
