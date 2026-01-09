@@ -408,13 +408,17 @@ async def perform_payment_gateway_test(page,context):
                                 max_retries = 2
                                 retry_count = 0
                                 while retry_count < max_retries:
+                                    if retry_count == 0:
+                                        timeout_time = 30000
+                                    else:
+                                        timeout_time = 5000
                                     new_page = page
                                     pop_up_page = 0
                                     same_page_jump_url = 0
                                     current_old_url = page.url
-                                    popup_future = asyncio.create_task(page.context.wait_for_event("page"))     
+                                    popup_future = asyncio.create_task(page.context.wait_for_event("page", timeout=timeout_time))     
                                     navigation_future = asyncio.create_task(
-                                                                            page.wait_for_url(lambda url: url != current_old_url)
+                                                                            page.wait_for_url(lambda url: url != current_old_url, timeout=timeout_time)
                                                                         )
 
                                     ## DOM for deposit submit button
@@ -472,8 +476,8 @@ async def perform_payment_gateway_test(page,context):
                                             raise Exception ("NO NAVIGATION HAPPENED & NO POP UP PAGE,BUT OLD URL [%s] ARE DIFFERENT WITH CURRENT PAGE URL [%s]"%(current_old_url,new_page.url))
                                         retry_count += 1
                                         if retry_count == max_retries:
-                                            log.info("❌ Failed: DEPOSIT CLICK DID NOT TRIGGER ANY ACTION AFTER 1 RETRY.")
-                                            await new_page.screenshot(path="USTHEBEST_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=60000)
+                                            log.info("❌ Failed: DEPOSIT CLICK DID NOT TRIGGER ANY ACTION AFTER %s RETRY."%retry_count)
+                                            await new_page.screenshot(path="US_%s_%s_%s-%s_Payment_Page.png"%(deposit_option,deposit_method,deposit_channel,bank_name),timeout=60000)
                                             telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
                                             failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}_{deposit_option}"] = [f"payment page failed load"]
                                             deposit_submit_button_no_action = 1
