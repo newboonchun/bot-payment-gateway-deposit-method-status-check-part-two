@@ -302,7 +302,7 @@ async def payment_iframe_check(page):
         try:
             base = page.frame_locator("iframe").nth(i)
             iframe_q_container = base.locator("div.q-page-container")
-            iframe_text = await iframe_q_container.inner_text()
+            iframe_text = await iframe_q_container.inner_text(timeout=5000)
             log.info(f"INNER TEXT for iframe {i} : {iframe_text}")
             if '404 Page Not Found' in iframe_text:
                 log.info("404 Page Not Found !!!")
