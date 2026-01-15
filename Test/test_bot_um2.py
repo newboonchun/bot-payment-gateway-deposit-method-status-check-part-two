@@ -614,20 +614,20 @@ async def perform_payment_gateway_test(page):
                        log.info("NO MANUAL BANK TEXT FOUND:%s"%e)
                        pass
                     ## EXTRA MANUAL BANK CHECK ##
-                    if url_jump and payment_page_failed_load == False:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
-                        log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE SUCCESS LOAD")
-                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
-                        continue
-                    elif url_jump and payment_page_failed_load == True:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"payment page failed load"]
-                        log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE FAILED LOAD")
-                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
-                        continue
-                    else:
-                        pass
+                    #if url_jump and payment_page_failed_load == False:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
+                    #    log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE SUCCESS LOAD")
+                    #    await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
+                    #    continue
+                    #elif url_jump and payment_page_failed_load == True:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"payment page failed load"]
+                    #    log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE FAILED LOAD")
+                    #    await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
+                    #    continue
+                    #else:
+                    #    pass
                     toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
                     if toast_exist:
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
