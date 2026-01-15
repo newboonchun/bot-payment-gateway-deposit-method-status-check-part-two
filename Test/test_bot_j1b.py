@@ -298,17 +298,18 @@ async def payment_iframe_check(page):
     log.info(f"PAYMENT IFRAME COUNT : {payment_iframe_count}")
 
     ## locate certain text error
-    try:
-        base = page.frame_locator("iframe").nth(i)
-        iframe_q_container = base.locator("div.q-page-container")
-        iframe_text = await iframe_q_container.inner_text()
-        log.info(f"INNER TEXT for iframe {i} : {iframe_text}")
-        if '404 Page Not Found' in iframe_text:
-            log.info("404 Page Not Found !!!")
-            error_text = 1
-    except Exception as e:
-        log.info(f"INNER TEXT for iframe {i} ERROR!!: {e}")
-        #log.info("IFRAME PAYMENT CANNOT LOCATE FOR %s IFRAME : [%s]"%(i,e))
+    if payment_iframe_count != 0:
+        try:
+            base = page.frame_locator("iframe").nth(i)
+            iframe_q_container = base.locator("div.q-page-container")
+            iframe_text = await iframe_q_container.inner_text()
+            log.info(f"INNER TEXT for iframe {i} : {iframe_text}")
+            if '404 Page Not Found' in iframe_text:
+                log.info("404 Page Not Found !!!")
+                error_text = 1
+        except Exception as e:
+            log.info(f"INNER TEXT for iframe {i} ERROR!!: {e}")
+            #log.info("IFRAME PAYMENT CANNOT LOCATE FOR %s IFRAME : [%s]"%(i,e))
 
     log.info(f"ERROR TEXT  : {error_text}")
 
@@ -1057,7 +1058,7 @@ async def data_process_excel(telegram_message):
 
 @pytest.mark.asyncio
 async def test_main():
-    MAX_RETRY = 1
+    MAX_RETRY = 3
     global log
     th_tz = pytz.timezone('Asia/Bangkok')
     round_start = datetime.now(th_tz)

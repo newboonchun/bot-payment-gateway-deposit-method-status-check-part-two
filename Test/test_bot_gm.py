@@ -246,6 +246,27 @@ async def perform_login(page):
     except:
         raise Exception("LOGIN PROCESS - DEPOSIT BUTTON ARE FAILED TO CLICK")
 
+async def confirmation_deposit_success_check(page):
+    #<div data-v-e931c5d4="" class="pb-4 flex flex-col items-center justify-center">
+    #    <div data-v-e931c5d4="" class="px-4 py-2 md:text-base font-bold">Confirmation</div>
+    #     <div data-v-e931c5d4="">Success! Please go to the deposit page.</div></div>
+    #<button data-v-e931c5d4="" class="btn-redirect w-[280px] h-[60px]">
+    #     <p data-v-e931c5d4="" class="text-center uppercase">go</p></button>
+    try:
+        confirmation_deposit_button= page.locator('button.btn-redirect:has-text("go")')
+        await confirmation_deposit_button.wait_for(state='visible', timeout=30000)
+        confirmation_deposit_button_count = 1
+        is_visible = True
+    except Exception as e:
+        confirmation_deposit_button_count = 0
+        is_visible = False
+        log.info("CONFIRMATION DEPOSIT SUCCESS CHECK ERROR : %e")
+    
+    log.info("CONFIRMATION DEPOSIT SUCCESS CHECK: confirmation_deposit_button_count = [%s], visible = [%s]"%(confirmation_deposit_button_count, is_visible))
+    await asyncio.sleep(5)
+
+    return confirmation_deposit_button_count
+
 async def qr_code_check(page):
     ## DETECT QR CODE BASED ON HTML CONTENT !!! ##
     try:
@@ -543,7 +564,27 @@ async def perform_payment_gateway_test(page):
                         log.info("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE KEYED IN"%min_amount)
                     except:
                         raise Exception("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE NOT KEYED IN"%min_amount)
-                    url_jump, payment_page_failed_load = await url_jump_check(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
+                    # no need check url jump anymore, template has changed since 1/13/2026
+                    #url_jump, payment_page_failed_load = await url_jump_check(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
+                    try:
+                        deposit_submit_button = page.locator('button.btn_deposits.uppercase:has-text("Deposit")')
+                        await deposit_submit_button.wait_for(state="visible", timeout=60000)
+                        await deposit_submit_button.click()
+                        log.info("PERFORM PAYMENT GATEWAY TEST - เติมเงิน/DEPOSIT TOP UP BUTTON ARE CLICKED")
+                    except:
+                        raise Exception("PERFORM PAYMENT GATEWAY TEST - เติมเงิน/DEPOSIT TOP UP BUTTON ARE FAILED TO CLICK")
+                    # check deposit confirmation window is it got pop up
+                    confirmation_deposit_button_count = await confirmation_deposit_success_check(page)
+                    if confirmation_deposit_button_count != 0:
+                        log.info("PERFORM PAYMENT GATEWAY TEST - CONFIRMATION DEPOSIT POP UP FOUND !!!")
+                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
+                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
+                        await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
+                        continue
+                    else:
+                        await page.screenshot(path="GM_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                        pass
                     # EXTRA MANUAL BANK CHECK ##
                     try:
                        manual_bank_text_count = await page.locator('div.deposit_information_content_labels').count()
@@ -570,20 +611,20 @@ async def perform_payment_gateway_test(page):
                        log.info("NO MANUAL BANK TEXT FOUND:%s"%e)
                        pass
                     ## EXTRA MANUAL BANK CHECK ##
-                    if url_jump and payment_page_failed_load == False:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
-                        log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE SUCCESS LOAD")
-                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
-                        continue
-                    elif url_jump and payment_page_failed_load == True:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"payment page failed load"]
-                        log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE FAILED LOAD")
-                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
-                        continue
-                    else:
-                        pass
+                    #if url_jump and payment_page_failed_load == False:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
+                    #    log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE SUCCESS LOAD")
+                    #    await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
+                    #    continue
+                    #elif url_jump and payment_page_failed_load == True:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"payment page failed load"]
+                    #    log.info("SCRIPT STATUS: URL JUMP SUCCESS, PAYMENT PAGE FAILED LOAD")
+                    #    await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
+                    #    continue
+                    #else:
+                    #    pass
                     toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
                     if toast_exist:
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]

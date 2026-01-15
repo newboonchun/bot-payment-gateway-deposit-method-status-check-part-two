@@ -290,6 +290,27 @@ async def perform_login(page):
     except:
         raise Exception("LOGIN PROCESS - DEPOSIT BUTTON ARE FAILED TO CLICK")
 
+async def confirmation_deposit_success_check(page):
+    #<div data-v-e931c5d4="" class="pb-4 flex flex-col items-center justify-center">
+    #    <div data-v-e931c5d4="" class="px-4 py-2 md:text-base font-bold">Confirmation</div>
+    #     <div data-v-e931c5d4="">Success! Please go to the deposit page.</div></div>
+    #<button data-v-e931c5d4="" class="btn-redirect w-[280px] h-[60px]">
+    #     <p data-v-e931c5d4="" class="text-center uppercase">go</p></button>
+    try:
+        confirmation_deposit_button= page.locator('button.btn-redirect:has-text("go")')
+        await confirmation_deposit_button.wait_for(state='visible', timeout=30000)
+        confirmation_deposit_button_count = 1
+        is_visible = True
+    except Exception as e:
+        confirmation_deposit_button_count = 0
+        is_visible = False
+        log.info("CONFIRMATION DEPOSIT SUCCESS CHECK ERROR : %s"%e)
+    
+    log.info("CONFIRMATION DEPOSIT SUCCESS CHECK: confirmation_deposit_button_count = [%s], visible = [%s]"%(confirmation_deposit_button_count, is_visible))
+    await asyncio.sleep(5)
+
+    return confirmation_deposit_button_count
+    
 async def qr_code_check(page):
     ## DETECT QR CODE BASED ON HTML CONTENT !!! ##
     try:
@@ -382,13 +403,13 @@ async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,ban
     new_page = page
     url_jump = False
     payment_page_failed_load = True
-    popup_future = asyncio.create_task(page.context.wait_for_event("page", timeout=60000))     
+    popup_future = asyncio.create_task(page.context.wait_for_event("page", timeout=5000))     
     navigation_future = asyncio.create_task(
-                                            page.wait_for_url(lambda url: url != old_url, timeout=60000)
+                                            page.wait_for_url(lambda url: url != old_url, timeout=5000)
                                         )
     try:
         deposit_submit_button = page.locator('button.btn_deposits.uppercase:has-text("Deposit")')
-        await deposit_submit_button.wait_for(state="visible", timeout=60000)
+        await deposit_submit_button.wait_for(state="visible", timeout=5000)
         await deposit_submit_button.click()
         log.info("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE CLICKED")
     except:
@@ -628,10 +649,19 @@ async def perform_payment_gateway_test(page,context):
                         await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
                         continue
                     else:
-                        telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"no reason found, check manually_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"unknown reason"]
-                        log.warning("UNIDENTIFIED REASON")
-                        await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
+                        confirmation_deposit_button_count = await confirmation_deposit_success_check(page)
+                        if confirmation_deposit_button_count != 0:
+                            log.info("PERFORM PAYMENT GATEWAY TEST - CONFIRMATION DEPOSIT POP UP FOUND !!!")
+                            telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit success_{date_time("Asia/Bangkok")}"]
+                            failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"-"]
+                            await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
+                            await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
+                            continue
+                        else:
+                            telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"no reason found, check manually_{date_time("Asia/Bangkok")}"]
+                            failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"unknown reason"]
+                            log.warning("UNIDENTIFIED REASON")
+                            await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
             except Exception as e:
                 log.info("SELECT BANK ERROR:%s"%e)
                 
