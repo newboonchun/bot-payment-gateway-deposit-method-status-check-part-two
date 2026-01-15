@@ -491,7 +491,7 @@ async def telegram_send_operation(telegram_message,failed_reason,program_complet
 
             log.info("OPTION: [%s], METHOD: [%s], CHANNEL: [%s], STATUS: [%s], TIMESTAMP: [%s]"%(deposit_option,deposit_method,deposit_channel,status,timestamp))
             fail_line = f"│ **Failed Reason:** `{escape_md(failed_reason_text)}`\n" if failed_reason_text else ""
-            caption = f"""[W\\_Hao](tg://user?id=8416452734), [W\\_MC](tg://user?id=7629175195)
+            caption = f"""[W\\_JY](tg://user?id=7431317636)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [uea8\\.com](https://www\\.uea8\\.com/en\\-my)
 TEAM : UM
