@@ -765,7 +765,7 @@ TEAM : NBY
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
 
-            kie_caption = f"""[W\\_Karman](tg://user?id=5615912046)
+            kie_caption = f"""[Tyla\\_999](tg://user?id=5082865993)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [nex8\\.com](https://www\\.nex8\\.com/en\\-mm)
 TEAM : N8Y
@@ -807,26 +807,26 @@ TEAM : N8Y
                         log.info("ERROR TELEGRAM BOT [%s]"%(e))
                         break
 
-                #for attempt in range(3):
-                #    try:
-                #        with open(file_path, 'rb') as f:
-                #              await bot.send_photo(
-                #                    chat_id=kie_chat_id,
-                #                    photo=f,
-                #                    caption=kie_caption,
-                #                    parse_mode='MarkdownV2',
-                #                    read_timeout=30,
-                #                    write_timeout=30,
-                #                    connect_timeout=30
-                #                )
-                #        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
-                #        break
-                #    except TimedOut:
-                #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-                #        await asyncio.sleep(5)
-                #    except Exception as e:
-                #        log.info("ERROR TELEGRAM BOT [%s]"%(e))
-                #        break
+                for attempt in range(3):
+                    try:
+                        with open(file_path, 'rb') as f:
+                              await bot.send_photo(
+                                    chat_id=kie_chat_id,
+                                    photo=f,
+                                    caption=kie_caption,
+                                    parse_mode='MarkdownV2',
+                                    read_timeout=30,
+                                    write_timeout=30,
+                                    connect_timeout=30
+                                )
+                        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
+                        break
+                    except TimedOut:
+                        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+                        await asyncio.sleep(5)
+                    except Exception as e:
+                        log.info("ERROR TELEGRAM BOT [%s]"%(e))
+                        break
             else:
                 pass
     else:   
@@ -906,16 +906,16 @@ TIME: {escape_md(date_time)}
         except Exception as e:
             log.error(f"SUMMARY FAILED TO SENT: {e}")
     
-    #for attempt in range(3):
-    #    try:
-    #        await bot.send_message(chat_id=kie_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
-    #        log.info("SUMMARY SENT")
-    #        break
-    #    except TimedOut:
-    #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-    #        await asyncio.sleep(3)
-    #    except Exception as e:
-    #        log.error(f"SUMMARY FAILED TO SENT: {e}")
+    for attempt in range(3):
+        try:
+            await bot.send_message(chat_id=kie_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
+            log.info("SUMMARY SENT")
+            break
+        except TimedOut:
+            log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+            await asyncio.sleep(3)
+        except Exception as e:
+            log.error(f"SUMMARY FAILED TO SENT: {e}")
 
 async def clear_screenshot():
     picture_to_sent = glob.glob("*N8Y*.png")
