@@ -564,7 +564,7 @@ async def telegram_send_operation(telegram_message,failed_reason,program_complet
 
             log.info("OPTION: [%s], METHOD: [%s], CHANNEL: [%s], STATUS: [%s], TIMESTAMP: [%s]"%(deposit_option,deposit_method,deposit_channel,status,timestamp))
             fail_line = f"│ **Failed Reason:** `{escape_md(failed_reason_text)}`\n" if failed_reason_text else ""
-            caption = f"""[W\\_Hao](tg://user?id=8416452734), [W\\_MC](tg://user?id=7629175195)
+            caption = f"""[W\\_JY](tg://user?id=7431317636)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [uea8sg2\\.com](https://www\\.uea8sg2\\.com/en\\-sg)
 TEAM : US
@@ -582,7 +582,7 @@ TEAM : US
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
 
-            jr_raymond_caption = f"""[W\\_Karman](tg://user?id=5615912046)
+            jr_raymond_caption = f"""[xiaoq9893](tg://user?id=5504412612), [wei\\_7789](tg://user?id=5398051302)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [uea8sg2\\.com](https://www\\.uea8sg2\\.com/en\\-sg)
 TEAM : US
@@ -624,26 +624,26 @@ TEAM : US
                     except Exception as e:
                         log.info("ERROR TELEGRAM BOT [%s]"%(e))
                         break
-                #for attempt in range(3):
-                #    try:
-                #        with open(file_path, 'rb') as f:
-                #              await bot.send_photo(
-                #                    chat_id=jr_raymond_chat_id,
-                #                    photo=f,
-                #                    caption=jr_raymond_caption,
-                #                    parse_mode='MarkdownV2',
-                #                    read_timeout=30,
-                #                    write_timeout=30,
-                #                    connect_timeout=30
-                #                )
-                #        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
-                #        break
-                #    except TimedOut:
-                #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-                #        await asyncio.sleep(5)
-                #    except Exception as e:
-                #        log.info("ERROR TELEGRAM BOT [%s]"%(e))
-                #        break
+                for attempt in range(3):
+                    try:
+                        with open(file_path, 'rb') as f:
+                              await bot.send_photo(
+                                    chat_id=jr_raymond_chat_id,
+                                    photo=f,
+                                    caption=jr_raymond_caption,
+                                    parse_mode='MarkdownV2',
+                                    read_timeout=30,
+                                    write_timeout=30,
+                                    connect_timeout=30
+                                )
+                        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
+                        break
+                    except TimedOut:
+                        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+                        await asyncio.sleep(5)
+                    except Exception as e:
+                        log.info("ERROR TELEGRAM BOT [%s]"%(e))
+                        break
             else:
                 pass
     else:   
@@ -725,16 +725,16 @@ TIME: {escape_md(date_time)}
         except Exception as e:
             log.error(f"SUMMARY FAILED TO SENT: {e}")
     
-    #for attempt in range(3):
-    #    try:
-    #        await bot.send_message(chat_id=jr_raymond_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
-    #        log.info("SUMMARY SENT")
-    #        break
-    #    except TimedOut:
-    #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-    #        await asyncio.sleep(3)
-    #    except Exception as e:
-    #        log.error(f"SUMMARY FAILED TO SENT: {e}")
+    for attempt in range(3):
+        try:
+            await bot.send_message(chat_id=jr_raymond_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
+            log.info("SUMMARY SENT")
+            break
+        except TimedOut:
+            log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+            await asyncio.sleep(3)
+        except Exception as e:
+            log.error(f"SUMMARY FAILED TO SENT: {e}")
 
 async def clear_screenshot():
     picture_to_sent = glob.glob("*US*.png")

@@ -577,7 +577,7 @@ async def telegram_send_operation(telegram_message,failed_reason,program_complet
 
             log.info("METHOD: [%s], CHANNEL: [%s], STATUS: [%s], TIMESTAMP: [%s]"%(deposit_method,deposit_channel,status,timestamp))
             fail_line = f"│ **Failed Reason:** `{escape_md(failed_reason_text)}`\n" if failed_reason_text else ""
-            caption = f"""[W\\_Hao](tg://user?id=8416452734), [W\\_MC](tg://user?id=7629175195)
+            caption = f"""[W\\_JY](tg://user?id=7431317636)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [22winth9\\.com](https://www\\.22winth9\\.com/en\\-pb)
 TEAM : 2WP
@@ -594,22 +594,22 @@ TEAM : 2WP
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
             
-#            aris_caption = f"""[Janeny](tg://user?id=7354557269), [Augus](tg://user?id=6886607680), [Amin22FT](tg://user?id=7071925759), [Cs22fun](tg://user?id=6886607680), [wadee](tg://user?id=7071925759), [joyjug](tg://user?id=1883477695)
-#*Subject: Bot Testing Deposit Gateway*  
-#URL: [22winth9\\.com](https://www\\.22winth9\\.com/en\\-pb)
-#TEAM : 2WP
-#┌─ **Deposit Testing Result** ──────────┐
-#│ {status_emoji} **{status}** 
-#│  
-#│ **PaymentGateway:** `{escape_md(deposit_method) if deposit_method else "None"}`  
-#│ **Channel:** `{escape_md(deposit_channel) if deposit_channel else "None"}`  
-#└───────────────────────────┘
-#            
-#**Failed reason**  
-#{fail_line}
-#
-#**Time Detail**  
-#├─ **TimeOccurred:** `{timestamp}` """
+            aris_caption = f"""[itsmejm\\_035](tg://user?id=5734967989), [ArisGold999](tg://user?id=5709367510)
+*Subject: Bot Testing Deposit Gateway*  
+URL: [22winth9\\.com](https://www\\.22winth9\\.com/en\\-pb)
+TEAM : 2WP
+┌─ **Deposit Testing Result** ──────────┐
+│ {status_emoji} **{status}** 
+│  
+│ **PaymentGateway:** `{escape_md(deposit_method) if deposit_method else "None"}`  
+│ **Channel:** `{escape_md(deposit_channel) if deposit_channel else "None"}`  
+└───────────────────────────┘
+            
+**Failed reason**  
+{fail_line}
+
+**Time Detail**  
+├─ **TimeOccurred:** `{timestamp}` """
             files = glob.glob("*2WP_%s_%s*.png"%(deposit_method,deposit_channel))
             log.info("File [%s]"%(files))
             file_path = files[0]
@@ -635,26 +635,26 @@ TEAM : 2WP
                     except Exception as e:
                         log.info("ERROR TELEGRAM BOT [%s]"%(e))
                         break
-                #for attempt in range(3):
-                #    try:
-                #        with open(file_path, 'rb') as f:
-                #              await bot.send_photo(
-                #                    chat_id=aris_chat_id,
-                #                    photo=f,
-                #                    caption=aris_caption,
-                #                    parse_mode='MarkdownV2',
-                #                    read_timeout=30,
-                #                    write_timeout=30,
-                #                    connect_timeout=30
-                #                )
-                #        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
-                #        break
-                #    except TimedOut:
-                #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-                #        await asyncio.sleep(5)
-                #    except Exception as e:
-                #        log.info("ERROR TELEGRAM BOT [%s]"%(e))
-                #        break
+                for attempt in range(3):
+                    try:
+                        with open(file_path, 'rb') as f:
+                              await bot.send_photo(
+                                    chat_id=aris_chat_id,
+                                    photo=f,
+                                    caption=aris_caption,
+                                    parse_mode='MarkdownV2',
+                                    read_timeout=30,
+                                    write_timeout=30,
+                                    connect_timeout=30
+                                )
+                        log.info(f"SCREENSHOT SUCCESSFULLY SENT")
+                        break
+                    except TimedOut:
+                        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+                        await asyncio.sleep(5)
+                    except Exception as e:
+                        log.info("ERROR TELEGRAM BOT [%s]"%(e))
+                        break
             else:
                 pass
     else:   
@@ -733,16 +733,16 @@ TIME: {escape_md(date_time)}
             await asyncio.sleep(3)
         except Exception as e:
             log.error(f"SUMMARY FAILED TO SENT: {e}")
-    #for attempt in range(3):
-    #    try:
-    #        await bot.send_message(chat_id=aris_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
-    #        log.info("SUMMARY SENT")
-    #        break
-    #    except TimedOut:
-    #        log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
-    #        await asyncio.sleep(3)
-    #    except Exception as e:
-    #        log.error(f"SUMMARY FAILED TO SENT: {e}")
+    for attempt in range(3):
+        try:
+            await bot.send_message(chat_id=aris_chat_id, text=caption, parse_mode='MarkdownV2', disable_web_page_preview=True)
+            log.info("SUMMARY SENT")
+            break
+        except TimedOut:
+            log.warning(f"TELEGRAM TIMEOUT，RETRY {attempt + 1}/3...")
+            await asyncio.sleep(3)
+        except Exception as e:
+            log.error(f"SUMMARY FAILED TO SENT: {e}")
 
 async def clear_screenshot():
     picture_to_sent = glob.glob("*2WP*.png")
