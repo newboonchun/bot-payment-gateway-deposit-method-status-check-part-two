@@ -756,7 +756,7 @@ TEAM : I8N
 **Time Detail**  
 ├─ **TimeOccurred:** `{timestamp}` """ 
 
-            tom_jerry_caption = f"""[Raju2040](tg://user?id=6773704232), [jerryyy\\_01](tg://user?id=7777382770), [tomdwan128](tg://user?id=5273691694), [ote\\_Aadeeeeee](tg://user?id=8005780992)
+            tom_jerry_caption = f"""[Raju2040](tg://user?id=6773704232), [ote\\_Aadeeeeee](tg://user?id=8005780992)
 *Subject: Bot Testing Deposit Gateway*  
 URL: [ime88\\.com](https://www\\.ime88\\.com/en\\-np)
 TEAM : I8N
