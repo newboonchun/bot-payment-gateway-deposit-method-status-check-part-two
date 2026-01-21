@@ -85,6 +85,41 @@ async def wait_for_network_stable(page: Page, min_stable_ms: int = 1500, timeout
         page.remove_listener("requestfinished", on_request)
         page.remove_listener("requestfailed", on_request)
 
+async def reenter_deposit_page(page,option_btn):
+    for attempt in range(1, 3):
+        try:
+            log.info(f"Trying to goto URL attempt {attempt}/{3}: {"https://jit99v1.com"}")
+
+            response = await page.goto("https://jit99v1.com", timeout=30000, wait_until="domcontentloaded")
+            await asyncio.sleep(2)
+            await wait_for_network_stable(page, timeout=30000)
+
+            if response and response.ok:
+                log.info("REENTER DEPOSIT PAGE - PAGE LOADED SUCCESSFULLY")
+                break
+            else:
+                # if response is None or not ok
+                log.warning("Navigation response not OK")
+        except:
+            log.info("REENTER DEPOSIT PAGE - NETWORK NOT STABLE YET, CURRENT PAGE URL:%s"%page.url)
+    try:
+        advertisement_close_button = page.locator("div.close-popup")
+        await advertisement_close_button.click()
+        log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
+    except:
+        log.info("REENTER DEPOSIT PAGE - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+    try:
+        deposit_button = page.locator('span.deposit-btn')
+        await deposit_button.click()
+        log.info("REENTER DEPOSIT PAGE - DEPOSIT BUTTON DONE CLICKED")
+    except:
+        raise Exception("REENTER DEPOSIT PAGE - DEPOSIT BUTTON FAILED TO CLICKED")
+    try:
+        await option_btn.click()
+        log.info("REENTER DEPOSIT PAGE - DEPOSIT OPTION BUTTON DONE CLICKED")
+    except:
+        raise Exception("REENTER DEPOSIT PAGE - DEPOSIT OPTION BUTTON FAILED TO CLICKED")
+    
 async def perform_login(page):
     WEBSITE_URL = "https://jit99v1.com"
     for _ in range(3):
@@ -289,6 +324,7 @@ async def perform_payment_gateway_test(page,context):
                                     telegram_message[f"{deposit_method}_{deposit_option}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
                                     failed_reason[f"{deposit_method}_{deposit_option}"] = [f"payment page failed load"]
                                     log.info("PERFORM PAYMENT GATEWAY TEST - PAYMENT PAGE FAILED LOAD")
+                                    await reenter_deposit_page(page,btn)
                             except Exception as e:
                                     await asyncio.sleep(5)
                                     log.info("DEPOSIT SUBMIT BUTTON FAIL CLICKED :%s"%(e))
