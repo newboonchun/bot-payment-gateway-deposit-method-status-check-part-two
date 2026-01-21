@@ -377,6 +377,20 @@ async def qr_code_check(page):
         log.info("NO QR DETECTED")
     return qr_code_count
 
+async def check_error_message(page):
+    try:
+        error_message_container= page.locator('div.modal-message')
+        await error_message_container.wait_for(state='visible', timeout=10000)
+        error_message = await error_message_container.inner_text()
+        error_message_exist = True
+        log.info("ERROR MESSAGE EXIST : [%s]"%error_message)
+    except Exception as e:
+        error_message = '-'
+        error_message_exist = False
+        log.info("CHECK ERROR MESSAGE ERROR : %s"%e)
+    
+    return error_message_exist, error_message
+
 async def check_toast(page,deposit_method,deposit_channel,bank_name):
     toast_exist = False
     try:
@@ -415,9 +429,10 @@ async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,ban
     except:
         raise Exception("URL JUMP CHECK - เติมเงิน/DEPOSIT TOP UP BUTTON ARE FAILED TO CLICK")
     
-    toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
+    error_message_exist, error_message = await check_error_message(page)
+    #toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
     
-    if not toast_exist:
+    if error_message_exist == False:
         try:
             done, pending = await asyncio.wait(
                                     [popup_future, navigation_future],
@@ -492,7 +507,7 @@ async def url_jump_check(page,context,old_url,deposit_method,deposit_channel,ban
             url_jump = True
             payment_page_failed_load = False
     
-    return url_jump, payment_page_failed_load, pop_up_page, new_page, toast_exist, toast_failed_text
+    return url_jump, payment_page_failed_load, pop_up_page, new_page, error_message_exist, error_message
 
 
 async def perform_payment_gateway_test(page,context):
@@ -603,11 +618,13 @@ async def perform_payment_gateway_test(page,context):
                         log.info("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE KEYED IN"%min_amount)
                     except:
                         raise Exception("PERFORM PAYMENT GATEWAY TEST - MIN AMOUNT [%s] ARE NOT KEYED IN"%min_amount)
-                    url_jump, payment_page_failed_load, pop_up_page, new_page, toast_exist, toast_failed_text = await url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
-                    if toast_exist:
+                    url_jump, payment_page_failed_load, pop_up_page, new_page, error_message_exist, error_message = await url_jump_check(page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,telegram_message)
+                    if error_message_exist == True:
+                        await page.screenshot(path="D8M_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [toast_failed_text]
-                        log.info("TOAST DETECTED")
+                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [error_message]
+                        log.info("ERROR MESSAGE DETECTED")
+                        await reenter_deposit_page(page,new_page,context,old_url,deposit_method,deposit_channel,bank_name,bank_btn,pop_up_page,min_amount,recheck=0)
                         continue
                     # EXTRA MANUAL BANK CHECK ##
                     if pop_up_page == 0:

@@ -404,6 +404,20 @@ async def url_jump_check(page,old_url,deposit_method,deposit_channel,bank_name,b
     
     return url_jump, payment_page_failed_load
 
+async def check_error_message(page):
+    try:
+        error_message_container= page.locator('div.modal-message')
+        await error_message_container.wait_for(state='visible', timeout=30000)
+        error_message = await error_message_container.inner_text()
+        error_message_exist = True
+        log.info("ERROR MESSAGE EXIST : [%s]"%error_message)
+    except Exception as e:
+        error_message = '-'
+        error_message_exist = False
+        log.info("CHECK ERROR MESSAGE ERROR : %s"%e)
+    
+    return error_message_exist, error_message
+
 async def check_toast(page,deposit_method,deposit_channel,bank_name):
     toast_exist = False
     try:
@@ -626,17 +640,29 @@ async def perform_payment_gateway_test(page):
                     #    continue
                     #else:
                     #    pass
-#
-                    toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
-                    if toast_exist:
+                    error_message_exist, error_message = await check_error_message(page)
+                    if error_message_exist == True:
+                        await page.screenshot(path="A8S2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
-                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [toast_failed_text]
-                        log.info("TOAST DETECTED")
+                        failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [error_message]
+                        log.info("ERROR MESSAGE DETECTED")
+                        await reenter_deposit_page(page,old_url,deposit_method,deposit_channel,bank_name,bank_btn,min_amount,recheck=0)
                         continue
                     else:
+                        await page.screenshot(path="A8S2_%s_%s-%s_Payment_Page.png"%(deposit_method,deposit_channel,bank_name),timeout=30000)
                         telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"no reason found, check manually_{date_time("Asia/Bangkok")}"]
                         failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"unknown reason"]
                         log.warning("UNIDENTIFIED REASON")
+                    #toast_exist, toast_failed_text = await check_toast(page,deposit_method,deposit_channel,bank_name)
+                    #if toast_exist:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"deposit failed_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [toast_failed_text]
+                    #    log.info("TOAST DETECTED")
+                    #    continue
+                    #else:
+                    #    telegram_message[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"no reason found, check manually_{date_time("Asia/Bangkok")}"]
+                    #    failed_reason[f"{deposit_channel}-{bank_name}_{deposit_method}"] = [f"unknown reason"]
+                    #    log.warning("UNIDENTIFIED REASON")
             except Exception as e:
                 log.info("SELECT BANK ERROR:%s"%e)
                 
