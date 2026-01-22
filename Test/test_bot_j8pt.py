@@ -980,10 +980,10 @@ async def data_process_excel(telegram_message):
         dt = date_time("Asia/Bangkok")
         date = dt.split(" ")[0]
 
-        file = "data_bot_%s.xlsx"%date
+        file = "data_bot_other_currency_%s.xlsx"%date
         lock_file = file + ".lock"
         while os.path.exists(lock_file): 
-            asyncio.sleep(1) 
+            await asyncio.sleep(1) 
             log.info("EXCEL DATA: LOCK FILE STILL EXIST, OTHER SITE WRITING...")
         open(lock_file, "w").close()
         try:
