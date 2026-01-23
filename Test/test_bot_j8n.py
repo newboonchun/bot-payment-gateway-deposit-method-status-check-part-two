@@ -238,6 +238,26 @@ async def perform_login(page):
         log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE CLICKED")
     except:
         log.info("LOGIN PROCESS - ADVERTISEMENT CLOSE BUTTON ARE NOT CLICKED")
+    try:
+        announcement_box_locator = page.locator("div.announcement_desc_box")
+        await announcement_box_locator.locator('.o-checkbox').click()
+        log.info("LOGIN PROCESS - DO NOT SHOW AGAIN CLICK SUCCESS")
+    except Exception as e:
+        log.info("LOGIN PROCESS - DO NOT SHOW AGAIN CLICK SUCCESS ARE NOT CLICKED : [%s]"%e)
+    try:
+        close_button = page.locator('button.close_btn')
+        close_button_count = await close_button.count()
+        log.info("LOGIN PROCESS - CLOSE BUTTON COUNT : [%s]"%close_button_count)
+        for i in range(close_button_count):
+            try:
+                await close_button.nth(i).click(timeout=5000)
+                log.info("LOGIN PROCESS - CLOSE BUTTON ARE CLICKED")
+                break
+            except Exception as e:
+                log.info("LOGIN PROCESS - CLOSE BUTTON ERROR:%s"%e)
+    except Exception as e:
+        log.info("LOGIN PROCESS - NO CLOSE BUTTON ARE LOCATE [%s]"%close_button)
+    await asyncio.sleep(1)
     #class DOM: <div data-v-4fff4a3f="" class="deposit_topbar">
     #                <button data-v-4fff4a3f="" type="button" class="topbar_btn_2 mx-2 md:mx-[10px] flex items-center justify-center deposit_display_big" aria-label="Deposit" id="deposit_btn_12">Deposit</button> -->this is
     #                <button data-v-4fff4a3f="" type="button" class="mr-3 deposit_display_small rounded-md topbar_deposit_icon_btn" aria-label="Deposit" id="deposit_btn_13"> --> this is not
